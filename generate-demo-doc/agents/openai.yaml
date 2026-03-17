@@ -1,0 +1,4 @@
+interface:
+  display_name: "Generate Demo Doc"
+  short_description: "Generate demo-ready Feishu docs from PRs or Jira"
+  default_prompt: "Use $generate-demo-doc to create a demo-ready Feishu doc from this PR or Jira ticket."
