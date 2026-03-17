@@ -1,11 +1,4 @@
----
-name: generate-demo-doc
-description: Generate a demo-ready Feishu document from a GitHub PR or Jira ticket. Use when the user wants a concise internal demo稿, presentation notes, or business-facing summary from a PR URL, PR number, Jira URL, or Jira key, with emphasis on user story, outcome, before/after, demo script, and minimal technical detail.
----
-
 # Generate Demo Doc
-
-This file is the Codex adapter for this skill. The tool-agnostic definition lives in `skill.yaml`, and the shared instructions live in `PROMPT.md`.
 
 Use this skill to turn a PR or Jira ticket into a business-first demo document for internal team demos.
 
@@ -96,8 +89,8 @@ Write the transient Markdown to `/tmp`, not the repo.
 
 Then:
 
-1. Create the Feishu doc with `mcp__feishu__docx_builtin_import`.
-2. Verify existence by title search with `mcp__feishu__docx_builtin_search`.
+1. Create the Feishu doc with the available Feishu document import tool.
+2. Verify existence by title search with the available Feishu document search tool.
 3. If import reports an error but title search finds exactly one matching doc with the expected title, treat the creation as successful.
 4. If title search returns multiple ambiguous matches, keep the temp Markdown and report the ambiguity.
 5. If the doc cannot be confirmed, keep the temp Markdown and report its path.
@@ -132,17 +125,8 @@ For Jira input:
 4. Draft the demo document.
 5. Save, import, verify, and clean up using the same `/tmp` flow.
 
-## Examples
-
-These user requests should trigger this skill:
-
-- `基于这个 PR 生成 demo 文档：<GitHub PR URL>`
-- `帮我把这个 PR 整成 demo 稿：<PR_NUMBER>`
-- `基于这个 Jira 生成 demo 文档：<JIRA_KEY>`
-- `把这个需求总结成方便我 team demo 的飞书文档`
-
 ## Notes
 
 - Treat Feishu title search as the confirmation step when import behavior is unreliable.
 - If Jira and PR disagree, use Jira for product intent and PR for actual shipped scope.
-- Keep the final user-facing response short: doc title, whether Feishu creation was confirmed, and whether the temp file was deleted.
+- Keep the final user-facing response short: doc title, whether creation was confirmed, and whether the temp file was deleted.

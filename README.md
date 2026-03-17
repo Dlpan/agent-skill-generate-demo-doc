@@ -1,131 +1,216 @@
-# codex-skill-generate-demo-doc
+# generate-demo-doc
 
-Public single-skill repository for `generate-demo-doc`, a Codex skill that turns a GitHub PR or Jira ticket into a demo-ready Feishu document.
+Portable agent skill package for turning a GitHub PR or Jira ticket into a demo-ready document with a business-first narrative and optional Feishu publishing.
 
-The skill is designed for internal team demos where the presenter needs a business-first summary instead of a technical implementation review. It pulls context from GitHub, Jira, local repo docs, and Feishu MCP, then generates a structured demo稿 with user story, outcome, before/after, demo script, and live demo path.
+This repository is meant to be both:
 
-## What This Skill Does
+- a usable skill package for `generate-demo-doc`
+- a reference template for building cross-agent skill repositories
 
-Use `generate-demo-doc` when you want Codex to:
+## Overview
 
-- read a GitHub PR URL or PR number,
-- read a Jira URL or Jira key,
-- combine Jira intent, PR shipped scope, and local repo docs,
-- write a business-facing demo document,
-- create the final document in Feishu,
-- verify Feishu creation by title search when import returns a tool error,
-- delete the temporary Markdown only after Feishu existence is confirmed.
+`generate-demo-doc` helps an agent transform engineering artifacts into a demo script a product, delivery, or go-to-market audience can actually use. Instead of producing a changelog or implementation summary, it builds a presenter-friendly document with user story, problem framing, before/after, talking points, and a live-demo path.
 
-## When To Use It
+The package is intentionally structured so the core skill stays portable while each agent tool gets only a thin adapter.
 
-This skill is a good fit when you want to say things like:
+## Features
 
-- `用这个 PR 生成 demo 文档：<GitHub PR URL>`
-- `基于这个 Jira 生成 demo 文档：<JIRA_KEY>`
-- `帮我把这个需求整理成 team demo 稿`
+- Accepts a GitHub PR URL, PR number, Jira URL, or Jira key.
+- Prioritizes Jira for product intent, PR for shipped scope, and repo docs for terminology.
+- Produces a consistent output structure based on a shared template.
+- Supports optional Feishu publishing with title-search verification.
+- Keeps temporary markdown in `/tmp` and cleans it up only after confirmed publish.
+- Ships separate adapters for Codex, Claude Code, and Cursor.
 
-This skill is not intended for:
+## Why This Repo Shape
 
-- code review writeups,
-- release notes,
-- external customer-facing announcements,
-- full technical design docs.
+A reusable agent skill repository should separate the capability itself from the runtime that hosts it.
 
-## Requirements
+- `skill.yaml` describes the portable contract.
+- `PROMPT.md` contains the shared behavior.
+- `references/` stores reusable templates and assets.
+- `adapters/` maps the shared capability into specific tools.
+- runtime-specific compatibility files stay thin and disposable.
 
-Before using this skill, make sure your environment is ready:
+If all behavior lives inside one vendor-specific file, the project is a tool prompt. If the behavior lives in a shared contract with small adapters, it is much closer to a reusable skill package.
 
-- Codex with skills support enabled.
+## Repository Layout
+
+```text
+.
+├── CHANGELOG.md
+├── CONTRIBUTING.md
+├── LICENSE
+├── README.md
+├── examples
+│   ├── sample-output.md
+│   └── sample-requests.md
+└── generate-demo-doc
+    ├── PROMPT.md
+    ├── SKILL.md
+    ├── adapters
+    │   ├── claude
+    │   │   └── CLAUDE.md
+    │   └── cursor
+    │       └── generate-demo-doc.mdc
+    ├── agents
+    │   └── openai.yaml
+    ├── references
+    │   └── demo-template.md
+    └── skill.yaml
+```
+
+## Portable Contract
+
+The portable surface of this skill is defined by [generate-demo-doc/skill.yaml](generate-demo-doc/skill.yaml).
+
+Core contract:
+
+- Inputs: GitHub PR URL, PR number, Jira URL, Jira key.
+- Optional context: local repository docs.
+- Primary output: markdown demo document.
+- Optional output: Feishu document.
+- Shared prompt: [generate-demo-doc/PROMPT.md](generate-demo-doc/PROMPT.md).
+- Shared template: [generate-demo-doc/references/demo-template.md](generate-demo-doc/references/demo-template.md).
+
+## Supported Runtimes
+
+This repository currently includes adapters for:
+
+- Codex via [generate-demo-doc/SKILL.md](generate-demo-doc/SKILL.md)
+- Claude Code via [generate-demo-doc/adapters/claude/CLAUDE.md](generate-demo-doc/adapters/claude/CLAUDE.md)
+- Cursor via [generate-demo-doc/adapters/cursor/generate-demo-doc.mdc](generate-demo-doc/adapters/cursor/generate-demo-doc.mdc)
+
+## Prerequisites
+
+Before using the skill in any runtime, make sure you have:
+
 - GitHub CLI installed.
-- GitHub CLI authenticated with a valid token via `gh auth login`.
-- Atlassian / Jira MCP configured and authorized.
-- Feishu MCP configured and authorized for both doc creation and doc search.
-- Local access to the target code repository if you want the skill to include repo docs in the summary.
+- GitHub CLI authenticated with `gh auth login`.
+- Jira access configured in the current runtime.
+- Feishu document creation and search access configured in the current runtime if you want publishing.
+- Local access to the target code repository if you want repo-doc enrichment.
 
-Important:
+Without Jira or Feishu access, the skill can still partially work, but the result will be less complete.
 
-- If `gh auth status` shows an invalid token, re-authenticate before trying to use or publish this skill.
-- The skill depends on Jira and Feishu MCP access. Without them, it can still partially work, but the result will be less complete.
+## Quick Start
 
-## Install
+Choose the path that matches your runtime:
 
-### Option 1: Install from GitHub with the skill installer
+- Codex: run `./scripts/install-codex-skill.sh`, then restart Codex.
+- Claude Code: point your task or project instruction to `generate-demo-doc/adapters/claude/CLAUDE.md`.
+- Cursor: load `generate-demo-doc/adapters/cursor/generate-demo-doc.mdc` as a project rule.
 
-If you already have the Codex skill installer helpers available, install the skill from this repo path:
+If you only want to inspect or reuse the prompt, start with [generate-demo-doc/PROMPT.md](generate-demo-doc/PROMPT.md) and [generate-demo-doc/references/demo-template.md](generate-demo-doc/references/demo-template.md) without installing anything.
+
+## Installation
+
+### Codex
+
+Fastest local install:
+
+```bash
+./scripts/install-codex-skill.sh
+```
+
+Alternative install options:
+
+- Use your preferred Codex skill installer.
+- Create the symlink manually.
+
+Install from GitHub with a Codex skill installer:
 
 ```bash
 install-skill-from-github.py --repo <owner>/codex-skill-generate-demo-doc --path generate-demo-doc
 ```
 
-Example:
-
-```bash
-install-skill-from-github.py --repo your-github-username/codex-skill-generate-demo-doc --path generate-demo-doc
-```
-
-After installation, restart Codex so the new skill is picked up.
-
-### Option 2: Manual install
-
-Clone the repo:
-
-```bash
-git clone https://github.com/<owner>/codex-skill-generate-demo-doc.git
-```
-
-Link the skill into your Codex skills directory:
+Or install manually:
 
 ```bash
 mkdir -p ~/.codex/skills
 ln -s /path/to/codex-skill-generate-demo-doc/generate-demo-doc ~/.codex/skills/generate-demo-doc
 ```
 
-Then restart Codex.
+If `generate-demo-doc` already exists under `~/.codex/skills`, remove or replace it first.
+
+### Claude Code
+
+No installation step is usually required. Keep this repository in the workspace and load `generate-demo-doc/adapters/claude/CLAUDE.md` as the task or project instruction so it can reference the shared prompt and template.
+
+### Cursor
+
+No package install is usually required. Copy or symlink `generate-demo-doc/adapters/cursor/generate-demo-doc.mdc` into the rule location used by your Cursor project, and keep the repository contents available next to it.
 
 ## Usage
 
-After installation, you can call the skill explicitly:
+Typical requests:
 
 ```text
-使用 $generate-demo-doc，用这个 PR 生成 demo 文档：<GitHub PR URL>
+用这个 PR 生成 demo 文档：https://github.com/acme/product/pull/1234
 ```
-
-Or more casually:
 
 ```text
-用这个 PR 生成 demo 文档：<GitHub PR URL>
+基于这个 Jira 生成 demo 文档：APP-2048
 ```
-
-You can also use Jira directly:
 
 ```text
-基于这个 Jira 生成 demo 文档：<JIRA_KEY>
+使用 $generate-demo-doc，把这个需求整理成方便 team demo 的飞书文档：APP-2048
 ```
 
-## How It Works
+More examples live in [examples/sample-requests.md](examples/sample-requests.md).
 
-The skill uses this priority order when building context:
+## Output Behavior
 
-1. Jira for business intent, user story, acceptance criteria, and scope.
+The skill always tries to produce a structured demo document with:
+
+- one-line summary
+- user story
+- problem statement
+- solution and outcome
+- scenarios
+- before and after framing
+- talking points
+- 30-second and 90-second demo scripts
+- recommended live-demo path
+- one backup technical sentence
+
+An abbreviated sample is available in [examples/sample-output.md](examples/sample-output.md).
+
+## Execution Model
+
+The shared prompt follows this source priority:
+
+1. Jira for business intent, user story, and acceptance criteria.
 2. PR for actual shipped scope and user-visible surfaces.
-3. Local repo docs for product language and supporting context.
+3. Local repo docs for product wording and supporting context.
 
-It writes a transient Markdown draft to `/tmp`, creates the Feishu doc, verifies doc existence via Feishu title search, and only then deletes the temp file.
+If Feishu publishing is enabled in the runtime, the skill writes a temporary markdown file under `/tmp`, attempts to import it, verifies existence by title search, and removes the temp file only after successful confirmation.
 
-This is important because some Feishu MCP environments may report an import error even when the document was actually created successfully.
+## Use This Repo As a Template
 
-## Notes About Feishu Import Errors
+If you want to create another portable skill repository, reuse this layout and change only the skill-specific pieces:
 
-In some environments, `docx_builtin_import` may fail with a transport or content-type error while the document is still created successfully in Feishu.
+1. duplicate `generate-demo-doc/` into a new skill directory
+2. rewrite `skill.yaml` for the new contract
+3. replace `PROMPT.md` with the new shared behavior
+4. replace files under `references/`
+5. keep adapters thin and point them back to the shared prompt
+6. update `README.md`, `examples/`, and `CHANGELOG.md`
 
-This skill treats Feishu title search as the source of truth:
+## Development
 
-- if title search finds exactly one matching doc, creation is treated as successful;
-- if confirmation is ambiguous or missing, the temp Markdown is kept for manual recovery.
+When evolving this repository:
+
+- put business behavior in `PROMPT.md`
+- keep adapters as wrappers, not sources of truth
+- update examples when the prompt contract changes
+- document user-visible changes in `CHANGELOG.md`
+
+Contribution guidance lives in [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Troubleshooting
 
-### GitHub auth fails
+### GitHub auth issues
 
 Check:
 
@@ -133,7 +218,7 @@ Check:
 gh auth status
 ```
 
-If the token is invalid, run:
+If needed:
 
 ```bash
 gh auth login -h github.com
@@ -141,36 +226,20 @@ gh auth login -h github.com
 
 ### Jira content cannot be fetched
 
-Check that:
+Check that Jira access is configured in the current runtime and that the issue key or URL is valid.
 
-- Atlassian MCP is configured,
-- your account has permission to the Jira project,
-- the Jira key or URL is correct.
+### Feishu publishing cannot be confirmed
 
-### Feishu doc creation fails
-
-Check that:
-
-- Feishu MCP is configured,
-- the account has permission to create docs,
-- doc search is also available so the skill can verify existence.
-
-If import fails but the doc exists, the skill should still recover by title search.
+Check that both document import and title search are available in the current runtime. If confirmation is ambiguous or missing, keep the generated markdown for manual recovery.
 
 ### Local repo docs are missing
 
-This is not fatal. The skill will continue using Jira + PR only and note the missing repo-doc context when needed.
+This is not fatal. The skill will continue with Jira and PR context only.
 
-## Repository Layout
+## Versioning
 
-```text
-.
-├── LICENSE
-├── README.md
-└── generate-demo-doc
-    ├── SKILL.md
-    ├── agents
-    │   └── openai.yaml
-    └── references
-        └── demo-template.md
-```
+This repository uses SemVer for the portable skill-package surface. Public contract changes should be reflected in `generate-demo-doc/skill.yaml`, examples, and `CHANGELOG.md`.
+
+## License
+
+This repository is released under the MIT License. See [LICENSE](LICENSE).

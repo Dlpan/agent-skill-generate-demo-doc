@@ -1,0 +1,18 @@
+---
+description: Generate a demo-ready document from a GitHub PR or Jira ticket.
+globs:
+alwaysApply: false
+---
+
+# generate-demo-doc for Cursor
+
+Use `generate-demo-doc/PROMPT.md` as the shared instruction source and
+`generate-demo-doc/references/demo-template.md` as the template.
+
+When the user requests a demo document:
+
+- Accept a PR URL, PR number, Jira URL, or Jira key.
+- Build context in this order: Jira, PR, local repo docs.
+- Write the result as a business-facing internal demo document, not a changelog.
+- If Feishu publishing tools exist in the current setup, publish and verify by title search.
+- If publishing tools do not exist, return the markdown document and clearly note that publishing was skipped.

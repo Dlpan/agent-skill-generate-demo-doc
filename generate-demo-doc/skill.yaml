@@ -1,0 +1,64 @@
+schema_version: 1
+kind: skill
+name: generate-demo-doc
+version: 0.1.0
+license: MIT
+description: >
+  Generate a demo-ready document from a GitHub PR or Jira ticket with a
+  business-first narrative, then optionally publish it to Feishu.
+tags:
+  - demo
+  - github
+  - jira
+  - feishu
+  - prompt
+languages:
+  - zh-CN
+  - en
+owners:
+  - team: developer-productivity
+intent:
+  summary: Turn implementation artifacts into an internal demo script.
+  audience:
+    - internal demo presenters
+    - product managers
+    - engineering teams
+inputs:
+  accepted_forms:
+    - github_pr_url
+    - github_pr_number
+    - jira_url
+    - jira_key
+  optional_context:
+    - local_repo_docs
+outputs:
+  primary:
+    - markdown_demo_doc
+  optional:
+    - feishu_doc
+tooling:
+  required:
+    - github_cli
+  optional:
+    - jira_access
+    - feishu_docs_access
+execution:
+  prompt_file: PROMPT.md
+  template_files:
+    - references/demo-template.md
+  temp_dir: /tmp
+workflow:
+  - Normalize the incoming PR or Jira reference.
+  - Fetch Jira first when a key is available for business intent.
+  - Fetch PR context for shipped scope and changed surfaces.
+  - Search local repository docs for terminology and feature framing.
+  - Draft a business-facing demo document from the combined context.
+  - Optionally publish the markdown to Feishu and verify by title search.
+compatibility:
+  adapters:
+    - tool: codex
+      entry: SKILL.md
+    - tool: claude-code
+      entry: adapters/claude/CLAUDE.md
+    - tool: cursor
+      entry: adapters/cursor/generate-demo-doc.mdc
