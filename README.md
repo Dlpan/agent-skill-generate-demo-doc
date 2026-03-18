@@ -121,14 +121,14 @@ Alternative install options:
 Install from GitHub with a Codex skill installer:
 
 ```bash
-install-skill-from-github.py --repo <owner>/codex-skill-generate-demo-doc --path generate-demo-doc
+install-skill-from-github.py --repo <owner>/agent-skill-generate-demo-doc --path generate-demo-doc
 ```
 
 Or install manually:
 
 ```bash
 mkdir -p ~/.codex/skills
-ln -s /path/to/codex-skill-generate-demo-doc/generate-demo-doc ~/.codex/skills/generate-demo-doc
+ln -s /path/to/agent-skill-generate-demo-doc/generate-demo-doc ~/.codex/skills/generate-demo-doc
 ```
 
 If `generate-demo-doc` already exists under `~/.codex/skills`, remove or replace it first.
